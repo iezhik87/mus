@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Экспонат №1</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 25px;
+        }
+
+        .language-btn {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .language-btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .flag {
+            font-size: 24px;
+            margin-right: 15px;
+        }
+
+        .audio-player {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        audio {
+            width: 100%;
+            margin: 15px 0;
+        }
+
+        .back-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+            transition: background 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: #c0392b;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loading {
+            text-align: center;
+            color: #3498db;
+            font-style: italic;
+            margin: 10px 0;
+        }
+
+        .success {
+            text-align: center;
+            color: #27ae60;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Выбор языка -->
+        <div id="languageSelection">
+            <h1>🎧 Экспонат №1</h1>
+            <p class="subtitle">Выберите язык аудиогида</p>
+
+            <button class="language-btn" onclick="playAudio('Русский', 'rus1.mp3')">
+                <span class="flag">🇷🇺</span>
+                <span>Русский</span>
+            </button>
+
+            <button class="language-btn" onclick="playAudio('English', 'eng1.mp3')">
+                <span class="flag">🇺🇸</span>
+                <span>English</span>
+            </button>
+
+            <button class="language-btn" onclick="playAudio('Беларуская', 'bel1.mp3')">
+                <span class="flag">🇧🇾</span>
+                <span>Беларуская</span>
+            </button>
+        </div>
+
+        <!-- Аудиоплеер -->
+        <div id="audioPlayer" class="hidden">
+            <h1 id="currentLanguage">Аудиоэкскурсия</h1>
+
+            <div class="loading" id="loading">Загрузка аудио...</div>
+            <div class="success" id="success" style="display: none;">✅ Аудио готово к воспроизведению!</div>
+
+            <audio controls id="audioElement">
+                Ваш браузер не поддерживает аудио элемент.
+            </audio>
+
+            <button class="back-btn" onclick="showLanguageSelection()">
+                ← Выбрать другой язык
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Базовый URL для аудиофайлов
+        const baseUrl = 'https://raw.githubusercontent.com/iezhik87/mus/refs/heads/main/';
+
+        // Переменная для хранения текущего аудио
+        let currentAudio = null;
+
+        function playAudio(language, filename) {
+            console.log('Выбран язык:', language, 'Файл:', filename);
+
+            // Останавливаем предыдущее аудио, если оно есть
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+                currentAudio = null;
+            }
+
+            // Показываем загрузку
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('success').style.display = 'none';
+
+            // Переключаем экраны
+            document.getElementById('languageSelection').classList.add('hidden');
+            document.getElementById('audioPlayer').classList.remove('hidden');
+            document.getElementById('currentLanguage').textContent = 'Аудиоэкскурсия на ' + language;
+
+            // Формируем полную ссылку на аудио
+            const audioUrl = baseUrl + filename;
+            console.log('Полная ссылка:', audioUrl);
+
+            // Настраиваем аудио элемент
+            const audioElement = document.getElementById('audioElement');
+
+            // Очищаем и создаем новый source
+            audioElement.innerHTML = '';
+            const source = document.createElement('source');
+            source.src = audioUrl;
+            source.type = 'audio/mpeg';
+            audioElement.appendChild(source);
+
+            // Сохраняем ссылку на текущее аудио
+            currentAudio = audioElement;
+
+            // Загружаем аудио
+            audioElement.load();
+
+            // Обработчики событий
+            audioElement.addEventListener('loadeddata', function() {
+                console.log('Аудио данные загружены');
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('success').style.display = 'block';
+            });
+
+            audioElement.addEventListener('canplaythrough', function() {
+                console.log('Аудио полностью загружено и готово к воспроизведению');
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('success').style.display = 'block';
+
+                // Пытаемся автоматически воспроизвести
+                audioElement.play().catch(function(error) {
+                    console.log('Автовоспроизведение заблокировано, пользователь должен нажать play');
+                    document.getElementById('success').textContent = '✅ Нажмите ▶ для начала прослушивания';
+                });
+            });
+
+            audioElement.addEventListener('play', function() {
+                document.getElementById('success').style.display = 'none';
+            });
+
+            audioElement.addEventListener('error', function(e) {
+                console.error('Ошибка загрузки аудио:', e);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('success').style.display = 'none';
+                alert('Ошибка загрузки аудио. Пожалуйста, проверьте подключение к интернету.');
+            });
+        }
+
+        function showLanguageSelection() {
+            // Полностью останавливаем и сбрасываем аудио
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+                currentAudio = null;
+            }
+
+            // Очищаем source чтобы предотвратить повторное воспроизведение
+            const audioElement = document.getElementById('audioElement');
+            audioElement.innerHTML = '';
+            audioElement.load(); // Принудительно перезагружаем пустой плеер
+
+            // Возвращаем к выбору языка
+            document.getElementById('languageSelection').classList.remove('hidden');
+            document.getElementById('audioPlayer').classList.add('hidden');
+
+            // Сбрасываем сообщения
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('success').style.display = 'none';
+        }
+
+        // Добавляем обработку клавиши Escape
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                showLanguageSelection();
+            }
+        });
+
+        // Останавливаем аудио при закрытии/обновлении страницы
+        window.addEventListener('beforeunload', function() {
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+            }
+        });
+    </script>
+</body>
+</html>
